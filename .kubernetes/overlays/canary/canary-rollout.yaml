@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: saken-canary
+spec:
+  replicas: 5
+  strategy:
+    canary:
+      analysis:
+        templates:
+        - templateName: canary-success-rate
+        startingStep: 2
+        args:
+        - name: service-name
+          value: saken-canary-lb
+      steps:
+      - setWeight: 20
+      - pause: {duration: 10m}
+      - setWeight: 40
+      - pause: {duration: 10m}
+      - setWeight: 60
+      - pause: {duration: 10m}
+      - setWeight: 80
+      - pause: {duration: 10m}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: saken-canary
+  template:
+    metadata:
+      labels:
+        app:  saken-canary
+    spec:
+      containers:
+      - name:  saken-canary
+        image:  ccr.ccs.tencentyun.com/shovel/shovel-rollouts:0.0.2
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 9099
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 9099
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        ports:
+        - containerPort:  9099
+          name:  saken-canary

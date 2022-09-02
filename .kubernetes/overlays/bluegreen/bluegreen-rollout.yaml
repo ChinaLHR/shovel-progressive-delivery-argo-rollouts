@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: saken-bluegreen
+spec:
+  replicas: 3
+  revisionHistoryLimit: 1
+  strategy:
+    blueGreen:
+      activeService: saken-bluegreen-lb
+      previewService: saken-bluegreen-preview-lb
+      prePromotionAnalysis:
+        templates:
+        - templateName: bluegreen-smoke-test
+        args:
+        - name: service-name
+          value: saken-bluegreen-preview-lb
+  selector:
+    matchLabels:
+      app: saken-bluegreen
+  template:
+    metadata:
+      labels:
+        app:  saken-bluegreen
+    spec:
+      containers:
+      - name:  saken-bluegreen
+        image:  ccr.ccs.tencentyun.com/shovel/shovel-rollouts:0.0.2
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 9099
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 9099
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        ports:
+        - containerPort:  9099
+          name:  saken-bluegreen

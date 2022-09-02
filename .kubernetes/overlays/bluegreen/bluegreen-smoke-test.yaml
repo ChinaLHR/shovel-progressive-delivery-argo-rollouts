@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: bluegreen-smoke-test
+spec:
+  args:
+  - name: service-name
+  metrics:
+  - name: bluegreen-smoke-test
+    provider:
+      job:
+        spec:
+          backoffLimit: 1
+          template:
+            spec:
+              containers:
+              - name: bluegreen-smoke-test
+                image: alpine
+                command: 
+                - /bin/sh
+                - -c
+                - |
+                - echo "mock smoke test to serivce ..."
+              restartPolicy: Never

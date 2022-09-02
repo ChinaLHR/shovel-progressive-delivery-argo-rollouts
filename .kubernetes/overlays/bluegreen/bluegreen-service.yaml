@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: saken-bluegreen-lb
+  namespace: default
+  annotations:
+    prometheus.io/path: /metrics
+    prometheus.io/scrape: "true"
+spec:
+  selector:
+    app: saken-bluegreen
+  type: ClusterIP
+  sessionAffinity: None
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  ports:
+  - name: saken-bluegreen
+    protocol: TCP
+    port: 80
+    targetPort: 9099

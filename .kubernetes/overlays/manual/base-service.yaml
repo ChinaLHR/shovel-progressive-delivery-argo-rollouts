@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: saken-manual-lb
+  namespace: default
+  annotations:
+    prometheus.io/path: /metrics
+    prometheus.io/scrape: "true"
+spec:
+  selector:
+    app: saken-manual
+  type: ClusterIP
+  sessionAffinity: None
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  ports:
+  - name: saken-manual
+    protocol: TCP
+    port: 80
+    targetPort: 9099
